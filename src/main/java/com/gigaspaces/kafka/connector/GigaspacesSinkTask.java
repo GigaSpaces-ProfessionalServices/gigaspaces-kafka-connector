@@ -8,15 +8,17 @@ import com.gigaspaces.kafka.connector.internal.GigaspacesErrors;
 import com.gigaspaces.kafka.connector.internal.Loader;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.openspaces.core.GigaSpace;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -41,7 +43,9 @@ public class GigaspacesSinkTask extends SinkTask
   private long bufferSizeBytes;
   private long bufferFlushTime;
 
+
   private Map<String, String> topicsToClasses;
+  private Map<String, Map<String, Parser >> classFields;
 
 //  private GigaspacesSinkService sink = null;
 
@@ -55,7 +59,53 @@ public class GigaspacesSinkTask extends SinkTask
   public GigaspacesSinkTask()
   {
     topicsToClasses = new HashMap<>();
+
     //nothing
+  }
+
+  private static class Parser {
+    private final Class<?> type;
+    private final Function<String, Object> parser;
+
+    private Parser(Class<?> type, Function<String, Object> parser) {
+      this.type = type;
+      this.parser = parser;
+    }
+
+    public static BigDecimal parseBigDecimal(String str){
+      return new BigDecimal(str);
+    }
+  }
+  private static Map<String, Parser> initDefaultParsers() {
+    Map<String, Parser> result = new HashMap<>();
+
+    result.put(String.class.getName(), new Parser(String.class, s -> s));
+    result.put(boolean.class.getName(), new Parser(boolean.class, Boolean::parseBoolean));
+    result.put(Boolean.class.getName(), new Parser(Boolean.class, Boolean::parseBoolean));
+    result.put(byte.class.getName(), new Parser(byte.class, Byte::parseByte));
+    result.put(Byte.class.getName(), new Parser(Byte.class, Byte::parseByte));
+    result.put(short.class.getName(), new Parser(short.class, Short::parseShort));
+    result.put(Short.class.getName(), new Parser(Short.class, Short::parseShort));
+    result.put(int.class.getName(), new Parser(int.class, Integer::parseInt));
+    result.put(Integer.class.getName(), new Parser(Integer.class, Integer::parseInt));
+    result.put(long.class.getName(), new Parser(long.class, Long::parseLong));
+    result.put(Long.class.getName(), new Parser(Long.class, Long::parseLong));
+    result.put(float.class.getName(), new Parser(float.class, Float::parseFloat));
+    result.put(Float.class.getName(), new Parser(Float.class, Float::parseFloat));
+    result.put(double.class.getName(), new Parser(double.class, Double::parseDouble));
+    result.put(Double.class.getName(), new Parser(Double.class, Double::parseDouble));
+    result.put(BigDecimal.class.getName(), new Parser(BigDecimal.class, Parser::parseBigDecimal));
+    result.put(char.class.getName(), new Parser(char.class, s -> s.charAt(0)));
+    result.put(Character.class.getName(), new Parser(Character.class, s -> s.charAt(0)));
+    result.put(java.time.LocalDate.class.getName(), new Parser(java.time.LocalDate.class, java.time.LocalDate::parse));
+    result.put(java.time.LocalTime.class.getName(), new Parser(java.time.LocalTime.class, java.time.LocalTime::parse));
+    result.put(java.time.LocalDateTime.class.getName(), new Parser(java.time.LocalDateTime.class, java.time.LocalDateTime::parse));
+    result.put("string", result.get(String.class.getName()));
+    result.put("date", result.get(java.time.LocalDate.class.getName()));
+    result.put("time", result.get(java.time.LocalTime.class.getName()));
+    result.put("datetime", result.get(java.time.LocalDateTime.class.getName()));
+
+    return result;
   }
 
 
@@ -77,9 +127,9 @@ public class GigaspacesSinkTask extends SinkTask
       .builder()
       .setProperties(parsedConfig)
       .build();
-
+    Map<String, Class> classes =null;
     try{
-      Map<String, Class> classes  = Loader.loadJar(config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JAR_PATH));
+      classes  = Loader.loadJar(config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JAR_PATH));
       for(Map.Entry<String, Class> entry: classes.entrySet()){
         conn.readIfExistsById(entry.getValue(), "");
         topicsToClasses.put(entry.getValue().getSimpleName(), entry.getKey());
@@ -89,6 +139,18 @@ public class GigaspacesSinkTask extends SinkTask
       logger.severe("Could not load jar " + config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JAR_PATH));
       return;
     }
+    Map<String, Parser> parsers = initDefaultParsers();
+    for(Map.Entry<String, Class> entry: classes.entrySet()) {
+      Field[] fields = entry.getValue().getDeclaredFields();
+      Map<String, Parser> nameToParser = new HashMap<String, Parser>();
+      for (Field f: fields){
+        nameToParser.put(f.getName(), parsers.get(f.getType().getName()));
+        logger.info("Add parser for field " + f.getName() + " for type " + f.getType().getName());
+      }
+      classFields.put(entry.getKey(), nameToParser);
+    }
+
+
 
   }
 
@@ -159,6 +221,11 @@ public class GigaspacesSinkTask extends SinkTask
       } else {
         if(record.valueSchema().type() == Schema.Type.MAP){
           SpaceDocument doc = new SpaceDocument();
+          Map<String, Parser> fields = classFields.get(doc.getTypeName());
+          if(null == fields){
+            logger.severe("Could not find the class " + doc.getTypeName());
+            return;
+          }
           Map<String, String> payload = (Map<String,String>)record.value();
           for (Map.Entry<String, String> entry: payload.entrySet()) {
             if(entry.getKey().startsWith("__")) {
@@ -166,6 +233,12 @@ public class GigaspacesSinkTask extends SinkTask
                 write = false;
               }
             } else {
+              Parser p = fields.get(entry.getKey());
+              if(null == p){
+                logger.warning("Could not find parser for type " + entry.getKey());
+                continue;
+              }
+              doc.setProperty(entry.getKey(), p.parser.apply(entry.getValue()));
               doc.setProperty(entry.getKey(), entry.getValue());
             }
           }
