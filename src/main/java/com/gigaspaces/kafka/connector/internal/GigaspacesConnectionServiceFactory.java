@@ -51,6 +51,8 @@ public class GigaspacesConnectionServiceFactory
 
     public GigaspacesConnectionServiceBuilder setProperties(Map<String, String> conf)
     {
+      if(null == this.prop)
+        this.prop = new Properties();
       this.prop.putAll(conf);
       if(!conf.containsKey(GigaspacesSinkConnectorConfig.GS_SPACE_NAME))
       {
