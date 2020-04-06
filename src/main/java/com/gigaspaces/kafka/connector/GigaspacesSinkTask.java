@@ -1,25 +1,25 @@
 package com.gigaspaces.kafka.connector;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gigaspaces.document.SpaceDocument;
-import com.gigaspaces.kafka.connector.GigaspacesSinkConnectorConfig;
 import com.gigaspaces.kafka.connector.internal.GigaspacesConnectionServiceFactory;
-import com.gigaspaces.kafka.connector.internal.GigaspacesSinkService;
-import com.gigaspaces.kafka.connector.internal.GigaspacesErrors;
 import com.gigaspaces.kafka.connector.internal.Loader;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import com.gigaspaces.metadata.SpaceTypeDescriptor;
+import com.gigaspaces.metadata.SpaceTypeDescriptorBuilder;
+import com.gigaspaces.metadata.index.SpaceIndexType;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.openspaces.core.GigaSpace;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 
@@ -46,6 +46,7 @@ public class GigaspacesSinkTask extends SinkTask
 
   private Map<String, String> topicsToClasses;
   private Map<String, Map<String, Parser >> classFields;
+  private Map<String, SpaceTypeDescriptor> topicsToTypeDescriptor;
 
 //  private GigaspacesSinkService sink = null;
 
@@ -59,7 +60,8 @@ public class GigaspacesSinkTask extends SinkTask
   public GigaspacesSinkTask()
   {
     topicsToClasses = new HashMap<>();
-
+    topicsToTypeDescriptor = new HashMap<>();
+    classFields = new HashMap<>();
     //nothing
   }
 
@@ -128,11 +130,45 @@ public class GigaspacesSinkTask extends SinkTask
       .setProperties(parsedConfig)
       .build();
     Map<String, Class> classes =null;
+    String jar = config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JAR_PATH);
+    String jsonModel = config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JSON_PATH);
     try{
-      classes  = Loader.loadJar(config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JAR_PATH));
-      for(Map.Entry<String, Class> entry: classes.entrySet()){
-        conn.readIfExistsById(entry.getValue(), "");
-        topicsToClasses.put(entry.getValue().getSimpleName(), entry.getKey());
+      if(null != jar && jar.length() > 0) {
+        classes = Loader.loadJar(config.get(GigaspacesSinkConnectorConfig.GS_MODEL_JAR_PATH));
+        for (Map.Entry<String, Class> entry : classes.entrySet()) {
+          this.conn.getTypeManager().registerTypeDescriptor(entry.getValue());
+          topicsToClasses.put(entry.getValue().getSimpleName(), entry.getValue().getName());
+        }
+      } else if(null != jsonModel && jsonModel.length() > 0){
+        Path path = Paths.get(jsonModel);
+        if(Files.exists(path)) {
+          Map<String, Object> json = new ObjectMapper().readValue(path.toFile(), HashMap.class);
+          String typeName = json.get("type").toString();
+          SpaceTypeDescriptorBuilder builder = new SpaceTypeDescriptorBuilder(typeName);
+          Map<String, String> fixedProps = (Map<String, String>)json.get("FixedProperties");
+          fixedProps.forEach((k,v)->builder.addFixedProperty(k,v));
+          Map<String, Map<String, Object>> indexes = (Map<String, Map<String, Object>>)json.get("Indexes");
+          indexes.forEach((k,v)-> {
+            String[] properties = ((List<String>)v.get("properties")).toArray(new String[0]);
+            if(properties.length == 1){
+              builder.addPropertyIndex(properties[0],
+                      SpaceIndexType.valueOf((String) v.get("type")),Boolean.valueOf((String) v.get("unique")));
+            } else {
+              if (((String) v.get("type")).equalsIgnoreCase(SpaceIndexType.EQUAL.name()) )
+                logger.warning("only EQUAL index type is supported for compoundindex");
+              builder.addCompoundIndex(properties,(Boolean)v.get("unique"));
+            }
+          });
+          builder.idProperty((String)json.get("Id"));
+          builder.routingProperty((String)json.get("RoutingProperty"));
+          builder.supportsDynamicProperties((Boolean)json.get("SupportsDynamicProperties"));
+          SpaceTypeDescriptor std = builder.create();
+          this.conn.getTypeManager().registerTypeDescriptor(std);
+          String[] parts = typeName.split("[.]");
+          String simpleTypeName = parts[parts.length-1];
+          topicsToTypeDescriptor.put(simpleTypeName, std);
+          topicsToClasses.put(simpleTypeName, typeName);
+        }
       }
 
     } catch (Exception e){
@@ -140,18 +176,27 @@ public class GigaspacesSinkTask extends SinkTask
       return;
     }
     Map<String, Parser> parsers = initDefaultParsers();
-    for(Map.Entry<String, Class> entry: classes.entrySet()) {
-      Field[] fields = entry.getValue().getDeclaredFields();
-      Map<String, Parser> nameToParser = new HashMap<String, Parser>();
-      for (Field f: fields){
-        nameToParser.put(f.getName(), parsers.get(f.getType().getName()));
-        logger.info("Add parser for field " + f.getName() + " for type " + f.getType().getName());
+    if(null != classes){
+      for(Map.Entry<String, Class> entry: classes.entrySet()) {
+        Field[] fields = entry.getValue().getDeclaredFields();
+        Map<String, Parser> nameToParser = new HashMap<String, Parser>();
+        for (Field f: fields){
+          nameToParser.put(f.getName(), parsers.get(f.getType().getName()));
+          logger.info("Add parser for field " + f.getName() + " for type " + f.getType().getName());
+        }
+        classFields.put(entry.getKey(), nameToParser);
       }
-      classFields.put(entry.getKey(), nameToParser);
+    } else {
+      Map<String, Parser> nameToParser = new HashMap<String, Parser>();
+      this.topicsToTypeDescriptor.entrySet().forEach(entry->{
+        String[] names = entry.getValue().getPropertiesNames();
+        String[] types = entry.getValue().getPropertiesTypes();
+        for (int i = 0; i < names.length; i++) {
+          nameToParser.put(names[i], parsers.get(types[i]));
+        }
+        classFields.put(entry.getKey(), nameToParser);
+      });
     }
-
-
-
   }
 
   /**
@@ -176,14 +221,14 @@ public class GigaspacesSinkTask extends SinkTask
   public void open(final Collection<TopicPartition> partitions)
   {
     logger.info(String.format(
-      "GigaspacesSinkTask:open, TopicPartitions: {}", partitions
+      "GigaspacesSinkTask:open, TopicPartitions: %s", partitions
     ));
 
 
     partitions.forEach(
       partition -> {
-        if(!topicsToClasses.containsKey(partition.topic())){
-          logger.info(String.format("Skipping topic {} since we do not have the model pojo for it", partition.topic()));
+        if(!topicsToClasses.containsKey(partition.topic()) && !topicsToTypeDescriptor.containsKey(partition.topic())){
+          logger.info(String.format("Skipping topic %s (%d) since we do not have the model pojo for it", partition.topic(), partition.partition()));
         }
       }
     );
@@ -211,44 +256,53 @@ public class GigaspacesSinkTask extends SinkTask
   @Override
   public void put(final Collection<SinkRecord> records)
   {
+    logger.info(String.format("Call put with record count %d", records.size()));
     List<SpaceDocument> writeDocs = new ArrayList<>();
     List<SpaceDocument> takeDocs = new ArrayList<>();
+    Map<String, Parser> parsers = initDefaultParsers();
     records.forEach((record)-> {
       String classname = topicsToClasses.get(record.topic());
       boolean write = true;
       if(null == classname) {
-        logger.info(String.format("Ignoring topic {}", record.topic()));
+        logger.info(String.format("Ignoring topic %s", record.topic()));
+        logger.info(String.format("Schema %s %s", record.valueSchema().type().getName(), record.valueSchema().toString()));
       } else {
-        if(record.valueSchema().type() == Schema.Type.MAP){
-          SpaceDocument doc = new SpaceDocument();
-          Map<String, Parser> fields = classFields.get(doc.getTypeName());
-          if(null == fields){
-            logger.severe("Could not find the class " + doc.getTypeName());
-            return;
-          }
-          Map<String, String> payload = (Map<String,String>)record.value();
-          for (Map.Entry<String, String> entry: payload.entrySet()) {
-            if(entry.getKey().startsWith("__")) {
-              if (entry.getKey().equals("__delete")) {
-                write = false;
-              }
-            } else {
-              Parser p = fields.get(entry.getKey());
-              if(null == p){
-                logger.warning("Could not find parser for type " + entry.getKey());
-                continue;
-              }
-              doc.setProperty(entry.getKey(), p.parser.apply(entry.getValue()));
-              doc.setProperty(entry.getKey(), entry.getValue());
-            }
-          }
-          if(write)
-            writeDocs.add(doc);
-          else
-            takeDocs.add(doc);
-        } else {
-          logger.info(String.format("Ignoring topic {} because schema type is {}", record.topic(), record.valueSchema().type().getName()));
+        SpaceDocument doc = new SpaceDocument(classname);
+        Map<String, Parser> fields = null;
+        if(classFields.containsKey(record.topic())){
+          fields= classFields.get(record.topic());
         }
+        else if(record.valueSchema().type() == Schema.Type.MAP) {
+          fields = classFields.get(doc.getTypeName());
+        }
+        if (null == fields) {
+          logger.severe("Could not find the class " + doc.getTypeName());
+          return;
+        }
+
+        Map<String, String> payload = (Map<String,String>)record.value();
+        for (Map.Entry<String, String> entry: payload.entrySet()) {
+          if(entry.getKey().startsWith("__")) {
+            if (entry.getKey().equals("__delete")) {
+              write = false;
+            }
+          } else {
+            Parser p = fields.get(entry.getKey());
+            if(null == p){
+              logger.warning("Could not find parser for type " + entry.getKey());
+              continue;
+            }
+            Object v = entry.getValue();
+            if(v instanceof String)
+              doc.setProperty(entry.getKey(), p.parser.apply((String)v));
+            else
+              doc.setProperty(entry.getKey(), entry.getValue());
+          }
+        }
+        if(write)
+          writeDocs.add(doc);
+        else
+          takeDocs.add(doc);
       }
     });
     if(writeDocs.size()>0){

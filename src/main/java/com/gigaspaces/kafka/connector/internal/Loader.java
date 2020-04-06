@@ -32,7 +32,7 @@ public class Loader {
             className = className.replace('/', '.');
             try {
                 Class c = classLoader.loadClass(className);
-                classes.put(className, c);
+                classes.put(c.getSimpleName(), c);
             } catch (ClassNotFoundException exp) {
                 logger.warning(exp.getMessage());
             }
