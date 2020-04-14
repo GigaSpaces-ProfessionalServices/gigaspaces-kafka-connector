@@ -140,35 +140,38 @@ public class GigaspacesSinkTask extends SinkTask
           this.conn.getTypeManager().registerTypeDescriptor(entry.getValue());
           topicsToClasses.put(entry.getValue().getSimpleName(), entry.getValue().getName());
         }
-      } else if(null != jsonModel && jsonModel.length() > 0){
+      } else if(null != jsonModel && jsonModel.length() > 0) {
         Path path = Paths.get(jsonModel);
-        if(Files.exists(path)) {
-          Map<String, Object> json = new ObjectMapper().readValue(path.toFile(), HashMap.class);
-          String typeName = json.get("type").toString();
-          SpaceTypeDescriptorBuilder builder = new SpaceTypeDescriptorBuilder(typeName);
-          Map<String, String> fixedProps = (Map<String, String>)json.get("FixedProperties");
-          fixedProps.forEach((k,v)->builder.addFixedProperty(k,v));
-          Map<String, Map<String, Object>> indexes = (Map<String, Map<String, Object>>)json.get("Indexes");
-          indexes.forEach((k,v)-> {
-            String[] properties = ((List<String>)v.get("properties")).toArray(new String[0]);
-            if(properties.length == 1){
-              builder.addPropertyIndex(properties[0],
-                      SpaceIndexType.valueOf((String) v.get("type")),Boolean.valueOf((String) v.get("unique")));
-            } else {
-              if (((String) v.get("type")).equalsIgnoreCase(SpaceIndexType.EQUAL.name()) )
-                logger.warning("only EQUAL index type is supported for compoundindex");
-              builder.addCompoundIndex(properties,(Boolean)v.get("unique"));
-            }
-          });
-          builder.idProperty((String)json.get("Id"));
-          builder.routingProperty((String)json.get("RoutingProperty"));
-          builder.supportsDynamicProperties((Boolean)json.get("SupportsDynamicProperties"));
-          SpaceTypeDescriptor std = builder.create();
-          this.conn.getTypeManager().registerTypeDescriptor(std);
-          String[] parts = typeName.split("[.]");
-          String simpleTypeName = parts[parts.length-1];
-          topicsToTypeDescriptor.put(simpleTypeName, std);
-          topicsToClasses.put(simpleTypeName, typeName);
+        if (Files.exists(path)) {
+          List<Map<String, Object>> models = new ObjectMapper().readValue(path.toFile(), ArrayList.class);
+          for (Map<String, Object> json : models
+          ) {
+            String typeName = json.get("type").toString();
+            SpaceTypeDescriptorBuilder builder = new SpaceTypeDescriptorBuilder(typeName);
+            Map<String, String> fixedProps = (Map<String, String>) json.get("FixedProperties");
+            fixedProps.forEach((k, v) -> builder.addFixedProperty(k, v));
+            Map<String, Map<String, Object>> indexes = (Map<String, Map<String, Object>>) json.get("Indexes");
+            indexes.forEach((k, v) -> {
+              String[] properties = ((List<String>) v.get("properties")).toArray(new String[0]);
+              if (properties.length == 1) {
+                builder.addPropertyIndex(properties[0],
+                        SpaceIndexType.valueOf((String) v.get("type")), Boolean.valueOf((String) v.get("unique")));
+              } else {
+                if (((String) v.get("type")).equalsIgnoreCase(SpaceIndexType.EQUAL.name()))
+                  logger.warning("only EQUAL index type is supported for compoundindex");
+                builder.addCompoundIndex(properties, (Boolean) v.get("unique"));
+              }
+            });
+            builder.idProperty((String) json.get("Id"));
+            builder.routingProperty((String) json.get("RoutingProperty"));
+            builder.supportsDynamicProperties((Boolean) json.get("SupportsDynamicProperties"));
+            SpaceTypeDescriptor std = builder.create();
+            this.conn.getTypeManager().registerTypeDescriptor(std);
+            String[] parts = typeName.split("[.]");
+            String simpleTypeName = parts[parts.length - 1];
+            topicsToTypeDescriptor.put(simpleTypeName, std);
+            topicsToClasses.put(simpleTypeName, typeName);
+          }
         }
       }
 
