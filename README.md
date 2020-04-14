@@ -43,7 +43,8 @@ Gigaspaces connector model schema json file example:
 	"num": "java.lang.Integer"
 	},
 	"Indexes": {
-	"name": {"type":"ORDERED", "properties": ["firstname", "lastname"], "unique": false}
+	"compoundIdx": {"type":"EQUAL", "properties": ["firstname", "lastname"], "unique": false},
+	"lastNameIdx": {"type":"ORDERED", "properties": ["lastname"], "unique": false}
 	},
 	"Id": "num",
 	"RoutingProperty": "firstname",
