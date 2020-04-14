@@ -31,7 +31,7 @@ public class GigaspacesConnectionServiceFactory
       return this;
     }
 
-    public GigaspacesConnectionServiceBuilder setURL(String spaceName)
+    public GigaspacesConnectionServiceBuilder setSpaceName(String spaceName)
     {
       this.spaceName = spaceName;
       return this;

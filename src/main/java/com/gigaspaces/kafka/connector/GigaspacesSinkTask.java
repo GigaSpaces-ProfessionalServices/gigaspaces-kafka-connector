@@ -13,6 +13,7 @@ import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.openspaces.core.GigaSpace;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -272,21 +273,27 @@ public class GigaspacesSinkTask extends SinkTask
         if(classFields.containsKey(record.topic())){
           fields= classFields.get(record.topic());
         }
-        else if(record.valueSchema().type() == Schema.Type.MAP) {
+        else if(null != record.valueSchema() && record.valueSchema().type() == Schema.Type.MAP) {
           fields = classFields.get(doc.getTypeName());
         }
         if (null == fields) {
           logger.severe("Could not find the class " + doc.getTypeName());
           return;
         }
-
-        Map<String, String> payload = (Map<String,String>)record.value();
-        for (Map.Entry<String, String> entry: payload.entrySet()) {
-          if(entry.getKey().startsWith("__")) {
-            if (entry.getKey().equals("__delete")) {
-              write = false;
-            }
-          } else {
+        String payloadStr;
+        if(record.value() instanceof String){
+          payloadStr = record.value().toString();
+        } else {
+          payloadStr = ((Map<String, String>)record.value()).get("payload");
+        }
+        Map<String, Object> payload;
+        try {
+          payload = new ObjectMapper().readValue(payloadStr, HashMap.class);
+        } catch (IOException e) {
+          logger.severe("Could not map payload to Map" + e.getMessage());
+          return;
+        }
+        for (Map.Entry<String, Object> entry: payload.entrySet()) {
             Parser p = fields.get(entry.getKey());
             if(null == p){
               logger.warning("Could not find parser for type " + entry.getKey());
@@ -297,7 +304,6 @@ public class GigaspacesSinkTask extends SinkTask
               doc.setProperty(entry.getKey(), p.parser.apply((String)v));
             else
               doc.setProperty(entry.getKey(), entry.getValue());
-          }
         }
         if(write)
           writeDocs.add(doc);
