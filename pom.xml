@@ -34,83 +34,6 @@
 
     <build>
         <plugins>
-            <!--plugin>
-                <groupId>io.confluent</groupId>
-                <version>0.11.1</version>
-                <artifactId>kafka-connect-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>kafka-connect</goal>
-                        </goals>
-                        <configuration>
-                            <title>Gigaspaces Kafka Connector</title>
-                            <documentationUrl>
-                                https://
-                            </documentationUrl>
-                            <description>
-                            </description>
-
-                            <supportProviderName>Gigaspaces, Ltd.
-                            </supportProviderName>
-                            <supportSummary>This feature is in preview, and
-                                provided primarily for evaluation and testing
-                            </supportSummary>
-
-                            <ownerUsername></ownerUsername>
-                            <ownerType>organization</ownerType>
-                            <ownerName></ownerName>
-                            <ownerUrl></ownerUrl>
-                            <ownerLogo>logo/.png</ownerLogo>
-
-                            <componentTypes>
-                                <componentType>sink</componentType>
-                            </componentTypes>
-                            <tags>
-                                <tag>Gigaspaces</tag>
-                                <tag>jdbc</tag>
-                                <tag>database</tag>
-                                <tag>dbms</tag>
-                                <tag>rdbms</tag>
-                                <tag>sql</tag>
-                                <tag>data warehouse</tag>
-                            </tags>
-                            <confluentControlCenterIntegration>true
-                            </confluentControlCenterIntegration>
-                            <singleMessageTransforms>false
-                            </singleMessageTransforms>
-                            <supportedEncodings>UTF-8</supportedEncodings>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin-->
-            <!--plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*IT.java</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>integration-test</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <phase>integration-test</phase>
-                        <configuration>
-                            <excludes>
-                                <exclude>none</exclude>
-                            </excludes>
-                            <includes>
-                                <include>**/*IT.java</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin-->
-
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
@@ -204,7 +127,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/connect-json -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-json</artifactId>
+            <version>2.3.0</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
