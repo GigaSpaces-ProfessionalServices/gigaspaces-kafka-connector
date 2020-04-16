@@ -1,0 +1,6 @@
+{"kind": "Dog","name": "Togo","age" : 11}
+{"kind": "Dog","name": "Blackie","age" : 5}
+{"kind": "Dog","name": "Tesa","age" : 1}
+{"kind": "Cat","name": "Pessah","age" : 14}
+{"kind": "Cat","name": "Devil","age" : 5}
+{"kind": "Mouse","name": "Pit","age" : 1 "color": "white"}

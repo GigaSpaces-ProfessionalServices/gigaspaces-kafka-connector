@@ -1,0 +1,28 @@
+[{
+	"type": "com.gs.Person",
+	"FixedProperties": {
+	"firstname": "java.lang.String",
+	"lastname": "java.lang.String",
+	"age": "java.lang.Integer",
+	"num": "java.lang.Integer"
+	},
+	"Indexes": {
+	"compoundIdx": {"type":"EQUAL", "properties": ["firstname", "lastname"], "unique": false},
+	"ageIdx": {"type":"ORDERED", "properties": ["age"], "unique": false}
+	},
+	"Id": "num",
+	"RoutingProperty": "firstname"
+},
+{
+	"type": "com.gs.Pet",
+	"FixedProperties": {
+	"kind": "java.lang.String",
+	"name": "java.lang.String",
+	"age": "java.lang.Integer"
+	},
+	"Indexes": {
+	"compoundIdx": {"type":"EQUAL", "properties": ["kind", "name"], "unique": false},
+	"ageIdx": {"type":"ORDERED", "properties": ["age"], "unique": false}
+	},
+	"RoutingProperty": "name"
+}]
