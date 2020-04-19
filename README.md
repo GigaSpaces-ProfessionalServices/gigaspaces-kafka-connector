@@ -1,7 +1,7 @@
 i# Gigaspaces Kafka Sink Connector
 
 ## Prerequisite
-- Installation of Kafka and Kafka connector
+- Installation of Kafka and Kafka Connect  
 - Installation of Insightedge v15.2
 - Git, Maven and JDK 8
 
