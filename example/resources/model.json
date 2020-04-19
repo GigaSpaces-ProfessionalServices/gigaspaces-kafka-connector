@@ -10,7 +10,7 @@
 	"compoundIdx": {"type":"EQUAL", "properties": ["firstname", "lastname"], "unique": false},
 	"ageIdx": {"type":"ORDERED", "properties": ["age"], "unique": false}
 	},
-	"Id": "num",
+	"Id": {"field":"num", "autogenerate": false},
 	"RoutingProperty": "firstname"
 },
 {
