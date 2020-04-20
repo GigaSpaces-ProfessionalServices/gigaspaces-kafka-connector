@@ -24,5 +24,6 @@
 	"compoundIdx": {"type":"EQUAL", "properties": ["kind", "name"], "unique": false},
 	"ageIdx": {"type":"ORDERED", "properties": ["age"], "unique": false}
 	},
+	"Id": {"field":"name"},
 	"RoutingProperty": "name"
 }]
