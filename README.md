@@ -35,7 +35,7 @@ gs.space.locator=127.0.0.1:4174
 #Choose one of the following -- Jar file or Json file: 
 gs.model.json.path=<path to gigaspaces kafka connector repo>/example/resources/model.json
 #
-plugin.path=<path to gigaspaces kafka connector repo>/
+plugin.path=<path to gigaspaces kafka connector repo>
 
 value.converter=org.apache.kafka.connect.json.JsonConverter
 value.converter.schemas.enable=false
@@ -96,7 +96,7 @@ This connector will publish the lines it reads to the type topics in Kafka.
 The Gigaspaces sink connector will read the data from the topics and store them in the in-memory grid (the "Space").
 All files are under the example/resources folder.
 
-1.Start Gigaspaces and have a Space running. In this example, we are running the demo project: gs.bat demo
+1.Start Gigaspaces and have a Space running. In this example, we are running the demo project: gs.sh demo
 
 2.Start Zookeeper. 
 
@@ -108,7 +108,7 @@ All files are under the example/resources folder.
 
 connect-standalone connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties
 
-**Note:** The three connectors properties are found in <path to gigaspaces kafka connector repo>\example\resources\. 
+**Note:** The three connectors properties are found in <path to gigaspaces kafka connector repo>/example/resources. 
 
 **Note:** Ensure that the file parameter in the people-source.properties file and the pet-source.properties file points to the location of the corresponding txt files.
 
