@@ -11,11 +11,13 @@
 - Move the generated jar (from the target folder) to the kafka connect connectors lib folder
 - Define the connector configuration as outlined below
 - Schema and type definitions for the data can be expressed via the json file as shown below.
-**Note:** The maven kafka artifacts in the POM file must match the Kafka version. 
+
+**Note:** The maven Kafka artifacts in the pom.xml file must match the Kafka version. 
+
 **Note:** If you have developed a GigaSpaces data model, you do not have to provide a json file. Instead, you can provide the generated jar file containing the relevant POJOs.
 
 ## Configuration
-### Gigaspaces connector properties file example:
+### Gigaspaces connector properties file example (connect-gigaspaces-sink.properties):
 
 ```
 bootstrap.servers=localhost:9092
@@ -51,7 +53,8 @@ offset.flush.interval.ms=10000
 ```
 
 ### Gigaspaces connector model schema json file example
-**Note:** These Json fields map to the Space Type Descriptor in GS. See (Space type Descriptor)[xxxx--ask Niv]
+**Note:** These Json fields map to the Space Type Descriptor in GS. For more information, see [Space type Descriptor](https://docs.gigaspaces.com/latest/dev-dotnet/document-api.html?Highlight=descriptor#TypeDefinition) in the GigaSpaces documentation center.
+
 ```json
 [{
 	"type": "com.gs.Person",
@@ -95,14 +98,19 @@ All files are under the example/resources folder.
 
 1.Start Gigaspaces and have a Space running. In this example, we are running the demo project: gs.bat demo
 
-2.Start Zookeeper. Note: Do not use port 2181.
+2.Start Zookeeper. 
 
-3.Start kafka using the same port used in item (2) above. 
+**Note:** Do not use port 2181.
+
+3.Start Kafka using the same port used for Zookeeper. 
 
 4.Start the connect with the source and sink connectors and see how the data is consumed and published to the space:
 
-(a) connect-standalone connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties
-	Note: The three connectors properties are found in <path to gigaspaces kafka connector repo>\example\resources\. 
+connect-standalone connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties
+
+**Note:** The three connectors properties are found in <path to gigaspaces kafka connector repo>\example\resources\. 
+
+**Note:** Ensure that the file parameter in the people-source.properties file and the pet-source.properties file points to the location of the corresponding txt files.
 
 
 5.Connect to the gigaspaces UI and view the types that were defined and the data that was inserted into the spaces by the connector.
