@@ -120,6 +120,8 @@ a) From the Ops Manager screen, choose **Analyze Ops Manager:**
 
 b) In the Spaces Overview, select the **demo** Space:
 
+<img src="https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/blob/master/images/demo-OPS-MGR.png?raw=true" style="border: 1px solid black" />
+
 ![Choose Demo Space](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/blob/master/images/demo-OPS-MGR.png?raw=true)
 
 c) You can now see the two object types, **Pet** and **Person**, and the number of entries for each object:
