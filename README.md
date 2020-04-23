@@ -114,7 +114,8 @@ All files are under the example/resources folder.
 
 
 5.Connect to the gigaspaces UI and view the types that were defined and the data that was inserted into the spaces by the connector.
-a) From the Ops manager screen, choose **Analyze Ops Manager:**
+
+a) From the Ops Manager screen, choose **Analyze Ops Manager:**
 ![Ops Manager initial screen](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/blob/master/images/Analyze-OPS-MGR.png?raw=true)
 
 b) In the Spaces Overview, select the **demo** Space:
