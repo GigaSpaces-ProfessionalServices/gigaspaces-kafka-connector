@@ -115,7 +115,8 @@ All files are under the example/resources folder.
 
 5.Connect to the gigaspaces UI and view the types that were defined and the data that was inserted into the spaces by the connector.
 
-![Ops Manager initial screen](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/images/Analyze-OPS-MGR.png)
+![Ops Manager initial screen](
+https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/tree/master/images/OPS-MGR.png)
 
 
 
