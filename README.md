@@ -2,7 +2,7 @@
 
 ## Prerequisite
 - Installation of Kafka and Kafka Connect  
-- Installation of Insightedge v15.2
+- [Installation of Insightedge v15.2](https://docs.gigaspaces.com/latest/started/installation.html?Highlight=download)
 - Git, Maven and JDK 8
 
 ## Install
@@ -88,7 +88,7 @@ offset.flush.interval.ms=10000
 
 
 ## Running the example:
-**Note:** The  steps must be run in the order indicated below.
+**Note:** The  steps must be run in the order indicated below. 
 
 
  In this example, we will consume data from a text file using the FileStreamSource source connector.
@@ -114,5 +114,9 @@ All files are under the example/resources folder.
 
 
 5.Connect to the gigaspaces UI and view the types that were defined and the data that was inserted into the spaces by the connector.
+
+![Ops Manager initial screen](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/images/Analyze-OPS-MGR.png)
+
+
 
 
