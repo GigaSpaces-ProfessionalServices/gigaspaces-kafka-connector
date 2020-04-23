@@ -114,10 +114,16 @@ All files are under the example/resources folder.
 
 
 5.Connect to the gigaspaces UI and view the types that were defined and the data that was inserted into the spaces by the connector.
-
+a) From the Ops manager screen, choose **Analyze Ops Manager:**
 ![Ops Manager initial screen](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/blob/master/images/Analyze-OPS-MGR.png?raw=true)
 
+b) In the Spaces Overview, select the **demo** Space:
 
+![Choose Demo Space](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/blob/master/images/demo-OPS-MGR.png?raw=true)
+
+c) You can now see the two object types, **Pet** and **Person**, and the number of entries for each object:
+
+![Choose Demo Space](https://github.com/GigaSpaces-ProfessionalServices/gigaspaces-kafka-connector/blob/master/images/demo-object-types-OPS-MGR.png?raw=true)
 
 
 
