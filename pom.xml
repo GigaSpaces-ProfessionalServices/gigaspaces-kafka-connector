@@ -110,7 +110,7 @@
                         </goals>
                         <configuration>
                             <title>Kafka Connect GigaSpaces</title>
-                            <documentationUrl>https://docs.confluent.io/3.3.1/connect/connect-gigaspaces/docs/index.html</documentationUrl>
+                            <documentationUrl>https://docs.gigaspaces.com/solution-hub/gigaspaces-kafka-sink-connector.html</documentationUrl>
                             <description>
                                 This connector enables capture of data streams from Apache Kafka into GigaSpaces InsightEdge state store product.
                             </description>
@@ -118,7 +118,7 @@
 
                             <supportProviderName>Gigaspaces, Inc.</supportProviderName>
                             <supportSummary>We provide full support for this connector, alongside GigaSpaces who helped with the developed of the connector and can help with the installation and configuration of the GigaSpaces InsightEdge In-Memory product.</supportSummary>
-                            <supportUrl>https://docs.confluent.io/current/</supportUrl>
+                            <supportUrl>https://www.gigaspaces.com/support-lobby/</supportUrl>
                             <supportLogo>logos/gigaspaces_logo.png</supportLogo>
 
                             <ownerUsername>confluentinc</ownerUsername>
