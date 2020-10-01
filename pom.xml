@@ -121,11 +121,11 @@
                             <supportUrl>https://www.gigaspaces.com/support-lobby/</supportUrl>
                             <supportLogo>logos/gigaspaces_logo.png</supportLogo>
 
-                            <ownerUsername>confluentinc</ownerUsername>
+                            <ownerUsername>Gigaspaces</ownerUsername>
                             <ownerType>organization</ownerType>
-                            <ownerName>Confluent, Inc.</ownerName>
-                            <ownerUrl>https://confluent.io/</ownerUrl>
-                            <ownerLogo>logos/confluent.png</ownerLogo>
+                            <ownerName>Gigaspaces, Inc.</ownerName>
+                            <ownerUrl>https://https://www.gigaspaces.com/</ownerUrl>
+                            <ownerLogo>logos/gigaspaces_logo.png</ownerLogo>
 
                             <dockerNamespace>confluentinc</dockerNamespace>
                             <dockerName>cp-kafka-connect</dockerName>
@@ -258,6 +258,57 @@
             <artifactId>xap-openspaces</artifactId>
             <version>${gsVersion}</version>
         </dependency>
-  
     </dependencies>
+    <profiles>
+        <profile>
+            <id>licenses-package</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>create-licenses</id>
+                                <configuration>
+                                    <mainClass>io.confluent.licenses.LicenseFinder</mainClass>
+                                    <arguments>
+                                        <!-- Note use of development instead of package so we pick up all dependencies. -->
+                                        <argument>-i ${project.build.directory}/${project.build.finalName}-package/share/java/gigaspaces-kafka-connector</argument>
+                                        <argument>-o ${project.basedir}/licenses</argument>
+                                        <argument>-f ${project.build.directory}/${project.build.finalName}-package/share/doc/gigaspaces-kafka-connector/gs-license.txt</argument>
+                                        <argument>-h</argument>
+                                        <argument>-l ${project.build.directory}/${project.build.finalName}-package/share/doc/gigaspaces-kafka-connector/licenses</argument>
+                                        <argument>-n ${project.build.directory}/${project.build.finalName}-package/share/doc/gigaspaces-kafka-connector/notices</argument>
+                                        <argument>-t ${project.name}</argument>
+                                        <argument>-x licenses-${project.version}.jar</argument>
+                                    </arguments>
+                                </configuration>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>io.confluent</groupId>
+                                <artifactId>licenses</artifactId>
+                            </executableDependency>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.confluent</groupId>
+                                <artifactId>licenses</artifactId>
+                                <version>${project.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
