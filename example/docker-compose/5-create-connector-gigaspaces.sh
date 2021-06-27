@@ -2,7 +2,7 @@
 # shellcheck disable=SC2016
 set -e
 
-# this will create file /tmp/gs/people.txt inside the kafka-connect container
+# this will create file /tmp/gs/model.json inside the kafka-connect container
 docker cp ../resources/model.json connect:/tmp/gs
 
 # create gigaspaces sink connector via REST API

@@ -2,7 +2,7 @@
 # shellcheck disable=SC2016
 set -e
 
-# this will create file /tmp/gs/people.txt inside the kafka-connect container
+# this will create file /tmp/gs/pets.txt inside the kafka-connect container
 docker cp ../resources/pets.txt connect:/tmp/gs
 
 # create demo source connector via REST API

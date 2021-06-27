@@ -1,4 +1,4 @@
-1. Prerequisites: Docker, Docker Compose, curl.
+1. Prerequisites: Docker, Docker Compose, curl, Java 11
 1. Make 'docker-compose' you current directory before running the scripts.
 1. Make all shell scripts executable with `chmod +x $(ls *.sh)`
 1. Run `1-build-image-kafka-connect-with-gs-plugin.sh` to create kafka-connect image with gigaspaces plugin jar in it.
