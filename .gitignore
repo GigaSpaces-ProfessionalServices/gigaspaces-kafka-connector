@@ -30,6 +30,7 @@ readme.mdcopy
 example/resources/pet-source.properties
 example/resources/people-source.properties
 example/resources/connect-gigaspaces-sink.properties
-example/resources/connect-gigaspaces-sink.properties
-example/resources/people-source.properties
-example/resources/pet-source.properties
+
+.idea/
+target/
+*.iml

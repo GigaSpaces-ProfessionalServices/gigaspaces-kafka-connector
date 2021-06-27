@@ -2,4 +2,4 @@
 {"firstname": "Alex","lastname": "Volt","num" : 22, "age": 27}
 {"firstname": "Linda","lastname": "Sachs","num" : 33, "age": 22}
 {"firstname": "Sara","lastname": "Lee","num" : 44, "age": 51}
-{"firstname": "Bob","lastname": "Dow","num" : 55, "age": 31}}
+{"firstname": "Bob","lastname": "Dow","num" : 55, "age": 31}
