@@ -1,0 +1,3 @@
+FROM cnfldemos/cp-server-connect-datagen:0.5.0-6.2.0
+COPY gigaspaces-kafka-connector-1.0.0.jar /usr/share/java/kafka
+RUN mkdir -p /tmp/gs
