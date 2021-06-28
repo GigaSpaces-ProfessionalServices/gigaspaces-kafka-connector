@@ -3,7 +3,7 @@
 ## Prerequisite
 - Installation of Kafka and Kafka Connect  
 - [Installation of Insightedge v15.2](https://docs.gigaspaces.com/latest/started/installation.html?Highlight=download)
-- Git, Maven and JDK 8
+- Git, Maven and JDK 11
 
 ## Install
 - git clone this repo
