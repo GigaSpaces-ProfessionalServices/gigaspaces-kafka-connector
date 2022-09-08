@@ -1,14 +1,14 @@
 # Gigaspaces Kafka Sink Connector
 
 ## Prerequisite
-- Installation of Kafka and Kafka Connect  
-- [Installation of Insightedge v15.2](https://docs.gigaspaces.com/latest/started/installation.html?Highlight=download)
-- Git, Maven and JDK 11
+- Installation of Confluent ( you can get it from from here: https://www.confluent.io/installation/ )  
+- [Installation of Gigaspaces v16.1.1](https://docs.gigaspaces.com/latest/started/installation.html?Highlight=download)
+- Git, Maven and JDK 1.8
 
 ## Install
 - git clone this repo
 - mvn clean package
-- Move the generated jar (from the target folder) to the kafka connect connectors lib folder
+- Move the generated jar (from the target folder) to <confluent-home>/share/java
 - Define the connector configuration as outlined below
 - Schema and type definitions for the data can be expressed via the json file as shown below.
 
@@ -127,17 +127,37 @@ This connector will publish the lines it reads to the type topics in Kafka.
 The Gigaspaces sink connector will read the data from the topics and store them in the in-memory grid (the "Space").
 All files are under the example/resources folder.
 
-1.Start Gigaspaces and have a Space running. In this example, we are running the demo project: ```gs.sh demo```
+1.Start Gigaspaces and have a Space running. In this example, we are running the demo project: 
 
-2.Start Zookeeper. 
+    ./gs.sh demo
+(Gigaspace ZK is running on port 2181).
 
-**Note:** Do not use port 2181.
+2.Edit <confluent-home>/etc/kafka/zookeeper.properties
 
-3.Start Kafka using the same port used for Zookeeper. 
+and modify the Confluent ZK port from 2181 to 2182 (could be any unused port)
+ 
+3.Start ZK
 
-4.Start the connect with the source and sink connectors and see how the data is consumed and published to the space:
+        cd <confluent-home>/bin
+        ./zookeeper-server-start ../etc/kafka/zookeeper.properties
+    
+4.Edit <confluent-home>/etc/kafka/server.properties> 
+and modify ZK port from 2181 to 2182
+ 
+5.Start Kafka
 
-```connect-standalone connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties```
+    cd <confluent-home>/bin
+    ./zookeeper-server-start ../etc/kafka/zookeeper.properties 
+
+6.Edit <confluent-home>/etc/connect-standalone.properties
+and add the line:
+
+plugin.path=<confluent-home>/share/filestream-connectors,<confluent-home>/share/java
+
+7.Start the connect with the source and sink connectors and see how the data is consumed and published to the space:
+
+    cd <confluent-home>/bin
+    ./connect-standalone ../etc/connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties
 
 **Note:** The three connectors properties are found in ```<path to gigaspaces kafka connector repo>/example/resources```. 
 
