@@ -147,7 +147,7 @@ and modify ZK port from 2181 to 2182
 5.Start Kafka
 
     cd <confluent-home>/bin
-    ./zookeeper-server-start ../etc/kafka/zookeeper.properties 
+    ./kafka-server-start ../etc/kafka/server.properties 
 
 6.Edit <confluent-home>/etc/connect-standalone.properties
 and add the line:
