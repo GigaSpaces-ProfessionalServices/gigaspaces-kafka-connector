@@ -149,7 +149,7 @@ and modify ZK port from 2181 to 2182
     cd <confluent-home>/bin
     ./kafka-server-start ../etc/kafka/server.properties 
 
-6.Edit <confluent-home>/etc/connect-standalone.properties
+6.Edit <confluent-home>/etc/kafka/connect-standalone.properties
 and add the line:
 
 plugin.path=<confluent-home>/share/filestream-connectors,<confluent-home>/share/java
@@ -157,7 +157,7 @@ plugin.path=<confluent-home>/share/filestream-connectors,<confluent-home>/share/
 7.Start the connect with the source and sink connectors and see how the data is consumed and published to the space:
 
     cd <confluent-home>/bin
-    ./connect-standalone ../etc/connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties
+    ./connect-standalone ../etc/kafka/connect-standalone.properties people-source.properties pet-source.properties connect-gigaspaces-sink.properties
 
 **Note:** The three connectors properties are found in ```<path to gigaspaces kafka connector repo>/example/resources```. 
 
